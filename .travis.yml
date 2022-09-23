@@ -1,0 +1,22 @@
+sudo: required
+language: generic
+
+services:
+  - docker
+
+before_install:
+  - docker build -t srhtt00/fakewebappapi -f ./api/Dockerfile.dev ./api
+
+script:
+  - docker run -e CI=true srhtt00/fakewebappapi npm run test
+
+after_success:
+  - docker build -t srhtt00/fakewebappclient -f ./client/Dockerfile.dev ./client
+  - docker build -t srhtt00/fakewebappapi -f ./api/Dockerfile.dev ./api
+  - docker build -t srhtt00/fakewebappnginx -f ./nginx/Dockerfile.dev ./nginx
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push srhtt00/fakewebappclient
+  - docker push srhtt00/fakewebappapi
+  - docker push srhtt00/fakewebappnginx
